@@ -1,0 +1,134 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Browse curated job opportunities across industries. Find your perfect role with LaunchPath." />
+  <title>LaunchPath — Opportunities Board</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="theme-bright jobs-page">
+  <header class="topbar" aria-label="Primary">
+    <div class="logo logo--fresh" aria-hidden="true" title="LaunchPath">
+      <div class="logo__ring"></div>
+      <div class="logo__dot"></div>
+    </div>
+    <div class="brand-block">
+      <span class="brand-name">LaunchPath</span>
+      <span class="brand-tag">Opportunities Board</span>
+    </div>
+    <nav class="topnav">
+      <button class="topnav__item">Discover Jobs <span class="badge" id="discoverCount">0</span></button>
+      <button class="topnav__item">Saved <span class="badge" id="savedCount">0</span></button>
+      <button class="topnav__item">Applied <span class="badge" id="appliedCount">0</span></button>
+      <button class="topnav__item">Opportunities <span class="badge" id="hotCount">0</span></button>
+    </nav>
+    <div class="topbar__actions">
+      <button class="icon-btn" aria-label="Search">Search</button>
+      <button class="icon-btn" aria-label="Notifications">Alerts</button>
+      <button id="loginBtn" class="avatar" aria-label="Login">Login</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar" aria-label="Primary tools">
+      <div class="sidebar__item active"><span class="dot"></span>Resume Builder</div>
+      <div class="sidebar__item"><span class="dot"></span>Skill Profile</div>
+      <div class="sidebar__item"><span class="dot"></span>Job Alerts</div>
+      <div class="sidebar__item"><span class="dot"></span>Application Tracker</div>
+      <div class="sidebar__item"><span class="dot"></span>Internship Planner</div>
+      <div class="sidebar__item"><span class="dot"></span>Login / Sign up</div>
+    </aside>
+
+    <section class="content">
+      <div class="content__head">
+        <div>
+          <p class="eyebrow">Live board</p>
+          <h1>High-signal jobs with clean summaries</h1>
+          <p class="lede">Browse by industry and level; each card shows title, location, employment type, salary, and match score.</p>
+        </div>
+        <div class="filters">
+          <input id="search" type="search" placeholder="Search titles, companies, tech" aria-label="Search jobs" />
+          <select id="domain" aria-label="Filter by domain">
+            <option value="">All industries</option>
+            <option value="fintech">Fintech</option>
+            <option value="ml">ML/Data</option>
+            <option value="health">Health</option>
+            <option value="infra">Infrastructure</option>
+            <option value="consumer">Consumer</option>
+            <option value="startup">Startups</option>
+          </select>
+          <select id="level" aria-label="Filter by level">
+            <option value="">Any level</option>
+            <option value="intern">Internship</option>
+            <option value="junior">Junior</option>
+            <option value="senior">Senior</option>
+            <option value="lead">Lead</option>
+          </select>
+          <select id="mode" aria-label="Filter by work style">
+            <option value="">Any work style</option>
+            <option value="remote">Remote</option>
+            <option value="hybrid">Hybrid</option>
+            <option value="onsite">On-site</option>
+          </select>
+          <select id="sort" aria-label="Sort results">
+            <option value="match">Best match</option>
+            <option value="recent">Recently posted</option>
+            <option value="comp">Highest comp</option>
+          </select>
+        </div>
+        <div class="results-meta" aria-live="polite">
+          <span class="pill pill--inline" id="resultsCount">Showing 0 roles</span>
+          <span class="pill pill--inline" id="statusSaved">Saved: 0</span>
+          <span class="pill pill--inline" id="statusApplied">Applied: 0</span>
+        </div>
+      </div>
+      <div class="jobs-grid" id="jobs-list" aria-live="polite"></div>
+    </section>
+
+    <aside class="assistant" aria-label="Assistant panel">
+      <div class="assistant__head">
+        <div class="assistant__avatar"></div>
+        <div>
+          <p class="assistant__title">Career Companion</p>
+          <p class="assistant__subtitle">Your personal growth guide</p>
+        </div>
+      </div>
+      <div class="assistant__body" id="assistant-body">
+        <div class="assistant__card">
+          <p class="assistant__label">Reminder</p>
+          <p>Follow up on your recent applications within 5 days. Persistence shows genuine interest!</p>
+        </div>
+        <div class="assistant__card">
+          <p class="assistant__label">Top Pick</p>
+          <p>"Backend Intern" at BankCo is 88% aligned with your skills. Highlight your Kubernetes migration project!</p>
+        </div>
+        <div class="assistant__card">
+          <p class="assistant__label">Trending Now</p>
+          <p>Companies are hiring 3x more for roles with Cloud & DevOps skills. Consider adding AWS or Docker!</p>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Login Modal -->
+  <dialog id="authDialog">
+    <form method="dialog" id="authForm" style="min-width:320px;">
+      <h3 style="margin:0 0 12px; font-weight:800;">Sign In</h3>
+      <label style="display:block; font-size:12px; font-weight:700; color:#667085; margin:8px 0 4px;">Email</label>
+      <input id="authEmail" type="email" placeholder="you@example.com" required />
+      <label style="display:block; font-size:12px; font-weight:700; color:#667085; margin:12px 0 4px;">Password</label>
+      <input id="authPass" type="password" placeholder="********" required />
+      <div style="display:flex; gap:8px; margin-top:14px; justify-content:flex-end;">
+        <button class="topnav__item" value="cancel">Cancel</button>
+        <button class="topnav__item" id="authSubmit" value="login">Sign In</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
