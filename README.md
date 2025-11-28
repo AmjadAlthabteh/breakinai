@@ -3,12 +3,40 @@
 Bright, human-friendly jobs board and career workspace aimed at internships, startups, and early careers. Includes AI-powered resume optimization with ATS analysis, job description matching, and tailored resume generation.
 
 ## Getting Started
+
+### Backend Setup
 ```bash
-# from repo root
-python -m http.server 3000
-# open http://localhost:3000/public/index.html
-# jobs board: http://localhost:3000/public/jobs.html
+# Install dependencies
+npm install
+
+# Build TypeScript
+npm run build
+
+# Start the server
+npm start
+# Server will run on http://localhost:3001
 ```
+
+### Development
+```bash
+# Run in development mode with ts-node
+npm run dev
+
+# Build and watch for changes
+npm run watch
+```
+
+The backend API will be available at `http://localhost:3001/api` with the following endpoints:
+- `GET /api/health` - Health check
+- `GET /api/jobs` - Get all jobs
+- `GET /api/jobs/:id` - Get job by ID
+- `POST /api/jobs/search` - Search jobs
+- `POST /api/resume/optimize` - Optimize resume for job description
+- `POST /api/resume/analyze-jd` - Analyze job description
+- `POST /api/resume/score-match` - Score resume-job match
+
+### Frontend
+Open `http://localhost:3001/index.html` or `http://localhost:3001/jobs.html` in your browser after starting the server.
 
 ## Structure
 - `public/index.html` – Home view with navigation counters, sidebar (Resume Builder, Skills, Alerts, Tracker, Internship Planner, Login), curated feed, and assistant panel.
@@ -29,7 +57,8 @@ python -m http.server 3000
 - `orchestrator.ts` – Coordinates all optimization modules
 
 ## Customizing Data
-- Edit `latestJobs` in `public/app.js` to change job cards (title, company, domain, level, employmentType, salary, score, stack).
+- Edit the `jobs` array in `src/routes/jobs.ts` to change job cards (title, company, domain, level, employmentType, salary, score, stack).
+- The frontend fetches jobs from the backend API at `/api/jobs`.
 
 ## Features
 - Redesigned top nav with numeric indicators (Discover, Saved, Applied, Opportunities) and login action.
