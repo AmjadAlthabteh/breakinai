@@ -41,7 +41,7 @@ Open `http://localhost:3001/index.html` or `http://localhost:3001/jobs.html` in 
 ## Structure
 - `public/index.html` – Home view with navigation counters, sidebar (Resume Builder, Skills, Alerts, Tracker, Internship Planner, Login), curated feed, and assistant panel.
 - `public/jobs.html` – Jobs board using the same layout.
-- `public/styles.css` – Bright white/blue theme with sharper accent, gentle shadows, cards, sidebar, assistant, chips, match badges.
+- `public/styles.css` – Beautiful light blue and white theme with sky blue accents, premium shadows, modern cards, intuitive sidebar, intelligent assistant panel, and smooth interactions.
 - `public/app.js` – Job data (including internships/startups), rendering/filtering logic, and lightweight login state.
 - `src/` – TypeScript modules for AI-powered resume optimization
 
@@ -61,12 +61,16 @@ Open `http://localhost:3001/index.html` or `http://localhost:3001/jobs.html` in 
 - The frontend fetches jobs from the backend API at `/api/jobs`.
 
 ## Features
-- Redesigned top nav with numeric indicators (Discover, Saved, Applied, Opportunities) and login action.
-- Curated job feed cards showing title, location, employment type, salary, skills, and match score.
-- Left sidebar for Resume Builder, Skill Profile, Job Alerts, Application Tracker, Internship Planner, Login/Sign up.
-- Right assistant panel (Career Companion) with tips and suggested roles.
-- AI-powered resume optimization and tailoring
-- Soft geometric logo, bright palette, smooth spacing, and accessible focus states.
+- Beautiful light blue and white UI with sky blue gradient accents
+- Redesigned top nav with numeric indicators (Discover, Saved, Applied, Opportunities) and login action
+- Curated job feed cards showing title, location, employment type, salary, skills, and match score
+- Left sidebar for Resume Builder, Skill Profile, Job Alerts, Application Tracker, Internship Planner, Login/Sign up
+- Right assistant panel (Career Companion) with tips and suggested roles
+- AI-powered resume optimization and tailoring with ATS analysis
+- Soft geometric logo with animated effects, premium shadows, and smooth spacing
+- Fully responsive design with accessible focus states
+- Job filtering and search functionality
+- Save and track job applications
 
 ## Notes
 - Pure HTML/CSS/JS; deployable to any static host.
