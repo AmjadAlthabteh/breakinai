@@ -39,11 +39,25 @@ The backend API will be available at `http://localhost:3001/api` with the follow
 Open `http://localhost:3001/index.html` or `http://localhost:3001/jobs.html` in your browser after starting the server.
 
 ## Structure
-- `public/index.html` – Home view with navigation counters, sidebar (Resume Builder, Skills, Alerts, Tracker, Internship Planner, Login), curated feed, and assistant panel.
-- `public/jobs.html` – Jobs board using the same layout.
-- `public/styles.css` – Beautiful light blue and white theme with sky blue accents, premium shadows, modern cards, intuitive sidebar, intelligent assistant panel, and smooth interactions.
-- `public/app.js` – Job data (including internships/startups), rendering/filtering logic, and lightweight login state.
-- `src/` – TypeScript modules for AI-powered resume optimization
+
+### Frontend (Modular JavaScript Architecture)
+- `public/index.html` – Home view with navigation counters, sidebar, curated feed, and assistant panel
+- `public/jobs.html` – Jobs board using the same layout
+- `public/styles.css` – Beautiful light blue and white theme with premium shadows and smooth interactions
+- `public/js/` – Modular JavaScript architecture:
+  - `config.js` – Configuration (API URLs, storage keys, endpoints)
+  - `constants.js` – Application constants (labels, enums)
+  - `api.js` – API service layer for backend communication
+  - `state.js` – State management with LocalStorage persistence
+  - `ui.js` – UI rendering and DOM updates
+  - `app.js` – Main application logic and event handling
+
+### Backend (TypeScript + Express)
+- `src/server.ts` – Express server setup and routing
+- `src/middleware/` – Error handling and middleware
+- `src/routes/` – API route handlers (resume, jobs)
+- `src/modules/` – Resume optimization modules
+- `src/orchestrator.ts` – Coordinates all optimization modules
 
 ## Resume Optimization Modules
 - `atsOptimizer.ts` – ATS-friendly keyword optimization
@@ -72,7 +86,26 @@ Open `http://localhost:3001/index.html` or `http://localhost:3001/jobs.html` in 
 - Job filtering and search functionality
 - Save and track job applications
 
+## Architecture Highlights
+
+### Frontend Modular Design
+The frontend follows a clean, modular architecture:
+- **Separation of Concerns**: API, state, and UI logic are completely separated
+- **API Service Layer**: Centralized `ApiService` class handles all backend communication
+- **State Management**: `JobsState` class with observable pattern and LocalStorage persistence
+- **UI Rendering**: `UIRenderer` class for consistent UI updates
+- **Configuration**: Environment-aware API URL detection (localhost vs production)
+- **No Framework Dependencies**: Pure vanilla JavaScript for maximum flexibility
+
+### Backend Organization
+- **TypeScript**: Full type safety throughout the backend
+- **Express Middleware**: Custom error handling and request processing
+- **Modular Routes**: Separated resume and jobs endpoints
+- **AI Pipeline**: Orchestrated resume optimization with multiple specialized modules
+
 ## Notes
-- Pure HTML/CSS/JS; deployable to any static host.
-- Uses Inter via Google Fonts (swap in `public/styles.css` if desired).
-- TypeScript backend modules for AI-powered features
+- Modular JavaScript architecture with clean separation of concerns
+- Uses Inter via Google Fonts (swap in `public/styles.css` if desired)
+- TypeScript backend with Express for robust API
+- Auto-detects environment (localhost vs production) for API URLs
+- LocalStorage for client-side state persistence

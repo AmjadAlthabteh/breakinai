@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { resumeRouter } from './routes/resume';
 import { jobsRouter } from './routes/jobs';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 
 dotenv.config();
 
@@ -13,14 +14,18 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-app.use('/api/resume', resumeRouter);
-app.use('/api/jobs', jobsRouter);
-
 app.get('/api/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+app.use('/api/resume', resumeRouter);
+app.use('/api/jobs', jobsRouter);
+
+app.use(notFoundHandler);
+app.use(errorHandler);
+
 app.listen(port, () => {
-  console.log(`\u2705 Server running on http://localhost:${port}`);
-  console.log(`\u2705 API available at http://localhost:${port}/api`);
+  console.log(`Server running on http://localhost:${port}`);
+  console.log(`API available at http://localhost:${port}/api`);
+  console.log(`Frontend available at http://localhost:${port}/index.html`);
 });
