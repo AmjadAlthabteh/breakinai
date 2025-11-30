@@ -1,8 +1,10 @@
 import { Router, Request, Response } from 'express';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export const jobsRouter = Router();
 
-type Job = {
+export type Job = {
   id: string;
   title: string;
   company: string;
@@ -19,167 +21,103 @@ type Job = {
   score: number;
   postedDays: number;
   hot: boolean;
+  description?: string;
+  applyUrl?: string;
+  datePosted?: string;
 };
 
-const jobs: Job[] = [
-  {
-    id: "launchpad-backend",
-    title: "Backend Intern",
-    company: "LaunchPad",
-    domain: "startup",
-    domainLabel: "Startups",
-    level: "intern",
-    location: "Remote",
-    employmentType: "Internship",
-    workMode: "remote",
-    salary: "$2k/mo stipend",
-    compValue: 24,
-    stack: ["Node", "React", "Figma"],
-    summary: "Ship small APIs that power student career journeys and co-design flows with PM/Design.",
-    score: 84,
-    postedDays: 3,
-    hot: true,
-  },
-  {
-    id: "spark-product-intern",
-    title: "Product Intern",
-    company: "Spark",
-    domain: "consumer",
-    domainLabel: "Consumer",
-    level: "intern",
-    location: "NYC",
-    employmentType: "Hybrid",
-    workMode: "hybrid",
-    salary: "$3k/mo stipend",
-    compValue: 36,
-    stack: ["Figma", "User research", "Notion"],
-    summary: "Map onboarding funnels, shadow user calls, and deliver quick A/B experiments with design.",
-    score: 79,
-    postedDays: 5,
-    hot: false,
-  },
-  {
-    id: "campushub-frontend",
-    title: "Junior Frontend Engineer",
-    company: "CampusHub",
-    domain: "startup",
-    domainLabel: "Startups",
-    level: "junior",
-    location: "Remote",
-    employmentType: "Full-time",
-    workMode: "remote",
-    salary: "$85k-$105k",
-    compValue: 105,
-    stack: ["React", "TypeScript", "Tailwind"],
-    summary: "Own student-facing UI, improve accessibility, and tune performance for dashboards.",
-    score: 86,
-    postedDays: 9,
-    hot: true,
-  },
-  {
-    id: "bankco-backend",
-    title: "Senior Backend Engineer",
-    company: "BankCo",
-    domain: "fintech",
-    domainLabel: "Fintech",
-    level: "senior",
-    location: "Remote",
-    employmentType: "Full-time",
-    workMode: "remote",
-    salary: "$160k-$190k",
-    compValue: 190,
-    stack: ["Go", "Kubernetes", "Postgres"],
-    summary: "Scale payments services, harden observability, and lead incident drills with SRE.",
-    score: 82,
-    postedDays: 4,
-    hot: false,
-  },
-  {
-    id: "novaai-lead",
-    title: "Lead ML Engineer, GenAI Safety",
-    company: "NovaAI",
-    domain: "ml",
-    domainLabel: "AI / ML",
-    level: "lead",
-    location: "NYC / Remote",
-    employmentType: "Hybrid",
-    workMode: "hybrid",
-    salary: "$200k-$240k",
-    compValue: 240,
-    stack: ["Python", "Triton", "LLM evals"],
-    summary: "Stand up eval pipelines, build safety classifiers, and partner with research on alignment.",
-    score: 92,
-    postedDays: 2,
-    hot: true,
-  },
-  {
-    id: "medloop-ux",
-    title: "Product Designer (Health)",
-    company: "MedLoop",
-    domain: "health",
-    domainLabel: "Health",
-    level: "junior",
-    location: "SF",
-    employmentType: "On-site",
-    workMode: "onsite",
-    salary: "$115k-$130k",
-    compValue: 130,
-    stack: ["Figma", "Design systems", "Prototyping"],
-    summary: "Redesign care journeys, prototype clinician tools, and align design tokens with eng.",
-    score: 81,
-    postedDays: 6,
-    hot: false,
-  },
-  {
-    id: "grid-ops",
-    title: "Infrastructure Engineer",
-    company: "GridLayer",
-    domain: "infra",
-    domainLabel: "Infrastructure",
-    level: "senior",
-    location: "Remote (US)",
-    employmentType: "Full-time",
-    workMode: "remote",
-    salary: "$175k-$205k",
-    compValue: 205,
-    stack: ["Terraform", "AWS", "Rust"],
-    summary: "Own infra-as-code, ship safe migrations, and codify platform guardrails for teams.",
-    score: 88,
-    postedDays: 7,
-    hot: false,
-  },
-  {
-    id: "atlas-analyst",
-    title: "Data Analyst, Growth",
-    company: "Atlas Labs",
-    domain: "consumer",
-    domainLabel: "Consumer",
-    level: "junior",
-    location: "Remote / EU",
-    employmentType: "Full-time",
-    workMode: "remote",
-    salary: "$110k-$125k",
-    compValue: 125,
-    stack: ["SQL", "dbt", "Looker"],
-    summary: "Model funnels, publish weekly dashboards, and spot the experiments that move activation.",
-    score: 83,
-    postedDays: 1,
-    hot: true,
-  },
-];
+const JOBS_FILE = path.join(__dirname, '../../data/jobs.json');
 
+// Helper functions to read/write jobs
+function readJobs(): Job[] {
+  try {
+    if (!fs.existsSync(JOBS_FILE)) {
+      const dir = path.dirname(JOBS_FILE);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      fs.writeFileSync(JOBS_FILE, JSON.stringify(getDefaultJobs(), null, 2));
+    }
+    const data = fs.readFileSync(JOBS_FILE, 'utf-8');
+    const jobs = JSON.parse(data);
+    return jobs.length > 0 ? jobs : getDefaultJobs();
+  } catch (error) {
+    console.error('Error reading jobs:', error);
+    return getDefaultJobs();
+  }
+}
+
+function writeJobs(jobs: Job[]): void {
+  try {
+    const dir = path.dirname(JOBS_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(JOBS_FILE, JSON.stringify(jobs, null, 2));
+  } catch (error) {
+    console.error('Error writing jobs:', error);
+    throw error;
+  }
+}
+
+function getDefaultJobs(): Job[] {
+  return [
+    {
+      id: "launchpad-backend",
+      title: "Backend Intern",
+      company: "LaunchPad",
+      domain: "startup",
+      domainLabel: "Startups",
+      level: "intern",
+      location: "Remote",
+      employmentType: "Internship",
+      workMode: "remote",
+      salary: "$2k/mo stipend",
+      compValue: 24,
+      stack: ["Node", "React", "Figma"],
+      summary: "Ship small APIs that power student career journeys and co-design flows with PM/Design.",
+      score: 84,
+      postedDays: 3,
+      hot: true,
+    },
+    {
+      id: "spark-product-intern",
+      title: "Product Intern",
+      company: "Spark",
+      domain: "consumer",
+      domainLabel: "Consumer",
+      level: "intern",
+      location: "NYC",
+      employmentType: "Hybrid",
+      workMode: "hybrid",
+      salary: "$3k/mo stipend",
+      compValue: 36,
+      stack: ["Figma", "User research", "Notion"],
+      summary: "Map onboarding funnels, shadow user calls, and deliver quick A/B experiments with design.",
+      score: 79,
+      postedDays: 5,
+      hot: false,
+    }
+  ];
+}
+
+// GET all jobs
 jobsRouter.get('/', (_req: Request, res: Response) => {
+  const jobs = readJobs();
   res.json({
     success: true,
     data: jobs
   });
 });
 
+// GET single job by ID
 jobsRouter.get('/:id', (req: Request, res: Response) => {
+  const jobs = readJobs();
   const job = jobs.find(j => j.id === req.params.id);
 
   if (!job) {
     res.status(404).json({
+      success: false,
       error: 'Job not found'
     });
     return;
@@ -191,14 +129,14 @@ jobsRouter.get('/:id', (req: Request, res: Response) => {
   });
 });
 
+// POST search jobs
 jobsRouter.post('/search', (req: Request, res: Response) => {
   const { query, domain, level, workMode } = req.body;
-
-  let filtered = jobs;
+  let jobs = readJobs();
 
   if (query) {
     const q = query.toLowerCase();
-    filtered = filtered.filter(job =>
+    jobs = jobs.filter(job =>
       job.title.toLowerCase().includes(q) ||
       job.company.toLowerCase().includes(q) ||
       job.summary.toLowerCase().includes(q) ||
@@ -207,19 +145,121 @@ jobsRouter.post('/search', (req: Request, res: Response) => {
   }
 
   if (domain) {
-    filtered = filtered.filter(job => job.domain === domain);
+    jobs = jobs.filter(job => job.domain === domain);
   }
 
   if (level) {
-    filtered = filtered.filter(job => job.level === level);
+    jobs = jobs.filter(job => job.level === level);
   }
 
   if (workMode) {
-    filtered = filtered.filter(job => job.workMode === workMode);
+    jobs = jobs.filter(job => job.workMode === workMode);
   }
 
   res.json({
     success: true,
-    data: filtered
+    data: jobs
   });
+});
+
+// POST create new job
+jobsRouter.post('/', (req: Request, res: Response) => {
+  try {
+    const jobs = readJobs();
+    const newJob: Job = {
+      id: req.body.id || `job-${Date.now()}`,
+      title: req.body.title,
+      company: req.body.company,
+      domain: req.body.domain || 'startup',
+      domainLabel: req.body.domainLabel || 'Startups',
+      level: req.body.level || 'junior',
+      location: req.body.location || 'Remote',
+      employmentType: req.body.employmentType || 'Full-time',
+      workMode: req.body.workMode || 'remote',
+      salary: req.body.salary || 'Competitive',
+      compValue: req.body.compValue || 100,
+      stack: req.body.stack || [],
+      summary: req.body.summary || '',
+      score: req.body.score || 75,
+      postedDays: req.body.postedDays || 0,
+      hot: req.body.hot || false,
+      description: req.body.description,
+      applyUrl: req.body.applyUrl,
+      datePosted: req.body.datePosted || new Date().toISOString()
+    };
+
+    jobs.unshift(newJob);
+    writeJobs(jobs);
+
+    res.json({
+      success: true,
+      data: newJob
+    });
+  } catch (error) {
+    console.error('Error creating job:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create job'
+    });
+  }
+});
+
+// PUT update job
+jobsRouter.put('/:id', (req: Request, res: Response) => {
+  try {
+    const jobs = readJobs();
+    const index = jobs.findIndex(j => j.id === req.params.id);
+
+    if (index === -1) {
+      res.status(404).json({
+        success: false,
+        error: 'Job not found'
+      });
+      return;
+    }
+
+    jobs[index] = { ...jobs[index], ...req.body, id: req.params.id };
+    writeJobs(jobs);
+
+    res.json({
+      success: true,
+      data: jobs[index]
+    });
+  } catch (error) {
+    console.error('Error updating job:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update job'
+    });
+  }
+});
+
+// DELETE job
+jobsRouter.delete('/:id', (req: Request, res: Response) => {
+  try {
+    let jobs = readJobs();
+    const initialLength = jobs.length;
+    jobs = jobs.filter(j => j.id !== req.params.id);
+
+    if (jobs.length === initialLength) {
+      res.status(404).json({
+        success: false,
+        error: 'Job not found'
+      });
+      return;
+    }
+
+    writeJobs(jobs);
+
+    res.json({
+      success: true,
+      message: 'Job deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting job:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete job'
+    });
+  }
 });
