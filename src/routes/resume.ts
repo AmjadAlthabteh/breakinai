@@ -2,8 +2,12 @@ import { Router, Request, Response } from 'express';
 import { orchestrate } from '../orchestrator';
 import { UserProfile, JobDescription } from '../types';
 import { NoopLLM } from '../llm';
+import { validateRequest, resumeOptimizationSchema, apiLimiter } from '../middleware/validation';
 
 export const resumeRouter = Router();
+
+// Apply rate limiting to all resume routes
+resumeRouter.use(apiLimiter.middleware());
 
 resumeRouter.post('/optimize', async (req: Request, res: Response) => {
   try {
@@ -32,8 +36,10 @@ resumeRouter.post('/optimize', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Resume optimization error:', error);
     res.status(500).json({
+      success: false,
       error: 'Failed to optimize resume',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Internal server error',
+      timestamp: new Date().toISOString()
     });
   }
 });
@@ -60,8 +66,10 @@ resumeRouter.post('/analyze-jd', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('JD analysis error:', error);
     res.status(500).json({
+      success: false,
       error: 'Failed to analyze job description',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Internal server error',
+      timestamp: new Date().toISOString()
     });
   }
 });
@@ -87,8 +95,10 @@ resumeRouter.post('/score-match', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Match scoring error:', error);
     res.status(500).json({
+      success: false,
       error: 'Failed to score match',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Internal server error',
+      timestamp: new Date().toISOString()
     });
   }
 });

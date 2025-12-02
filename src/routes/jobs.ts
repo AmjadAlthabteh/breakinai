@@ -2,8 +2,12 @@ import { Router, Request, Response } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
 import { aggregateJobs, getJobBoardLinks, JobSearchParams } from '../services/jobAggregator';
+import { validateRequest, jobCreationSchema, jobSearchSchema, generalLimiter } from '../middleware/validation';
 
 export const jobsRouter = Router();
+
+// Apply rate limiting to job routes
+jobsRouter.use(generalLimiter.middleware());
 
 export type Job = {
   id: string;
@@ -164,7 +168,7 @@ jobsRouter.post('/search', (req: Request, res: Response) => {
 });
 
 // POST create new job
-jobsRouter.post('/', (req: Request, res: Response) => {
+jobsRouter.post('/', validateRequest(jobCreationSchema), (req: Request, res: Response) => {
   try {
     const jobs = readJobs();
     const newJob: Job = {
