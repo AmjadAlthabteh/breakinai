@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
+import { aggregateJobs, getJobBoardLinks, JobSearchParams } from '../services/jobAggregator';
 
 export const jobsRouter = Router();
 
@@ -260,6 +261,47 @@ jobsRouter.delete('/:id', (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: 'Failed to delete job'
+    });
+  }
+});
+
+// GET external job board links
+jobsRouter.get('/external/links', (req: Request, res: Response) => {
+  const { keywords, location } = req.query;
+  const links = getJobBoardLinks(
+    keywords as string,
+    location as string
+  );
+
+  res.json({
+    success: true,
+    data: links
+  });
+});
+
+// POST aggregate jobs from external sources
+jobsRouter.post('/external/aggregate', async (req: Request, res: Response) => {
+  try {
+    const params: JobSearchParams = {
+      keywords: req.body.keywords || 'software engineer',
+      location: req.body.location,
+      experienceLevel: req.body.experienceLevel,
+      remote: req.body.remote,
+      limit: req.body.limit || 20
+    };
+
+    const jobs = await aggregateJobs(params);
+
+    res.json({
+      success: true,
+      data: jobs,
+      count: jobs.length
+    });
+  } catch (error) {
+    console.error('Error aggregating jobs:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to aggregate jobs from external sources'
     });
   }
 });
