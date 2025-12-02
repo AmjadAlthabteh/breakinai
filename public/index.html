@@ -244,6 +244,13 @@
 
   <!-- Cute Bear Mascot -->
   <div id="bear-container"></div>
+  <script src="js/storage.js"></script>
   <script src="js/bear-mascot.js"></script>
+  <script>
+    // Track page view
+    if (window.storage) {
+      window.storage.incrementUsage('homepage_view');
+    }
+  </script>
 </body>
 </html>
