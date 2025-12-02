@@ -64,11 +64,29 @@ class BearMascot {
       }, 1500);
     });
 
+    // Bear celebrates when clicked
+    this.bear.addEventListener('click', () => {
+      this.celebrate();
+      this.showMessage("You're awesome! 🎉✨");
+    });
+
+    // Track mouse movement for eyes
+    document.addEventListener('mousemove', (e) => this.trackMouse(e));
+
     // Blink animation
     setInterval(() => this.blink(), 3000 + Math.random() * 2000);
 
-    // Random idle animations
-    setInterval(() => this.randomIdleAnimation(), 5000);
+    // Random idle animations - MORE FREQUENT!
+    setInterval(() => this.randomIdleAnimation(), 4000);
+
+    // Random encouragement messages
+    setInterval(() => this.randomEncouragement(), 20000);
+
+    // Celebrate on page load after a delay
+    setTimeout(() => {
+      this.celebrate();
+      this.showMessage("Welcome! Let's find your dream job! 🚀");
+    }, 1500);
   }
 
   blink() {
@@ -99,15 +117,48 @@ class BearMascot {
   getRandomMessage() {
     const messages = [
       "Hi there! 👋",
-      "Let's find your dream job!",
-      "Your resume looks great!",
+      "Let's find your dream job! 🎯",
+      "Your resume looks great! ⭐",
       "You've got this! 💪",
-      "Ready to succeed?",
-      "I believe in you!",
-      "Let's do this together!",
-      "Exciting opportunities await!"
+      "Ready to succeed? 🚀",
+      "I believe in you! 💙",
+      "Let's do this together! 🤝",
+      "Exciting opportunities await! ✨",
+      "You're doing amazing! 🌟",
+      "Keep going! 💫",
+      "Success is near! 🎊",
+      "I'm here to help! 🐻"
     ];
     return messages[Math.floor(Math.random() * messages.length)];
+  }
+
+  randomEncouragement() {
+    const encouragements = [
+      "Don't give up! 💪",
+      "You're making great progress! 🌟",
+      "Keep pushing forward! 🚀",
+      "I'm cheering for you! 📣",
+      "Almost there! ✨",
+      "You can do it! 💙"
+    ];
+    this.showMessage(encouragements[Math.floor(Math.random() * encouragements.length)]);
+  }
+
+  trackMouse(e) {
+    const pupils = this.bear.querySelectorAll('.bear-pupil');
+    const bearRect = this.bear.getBoundingClientRect();
+    const bearCenterX = bearRect.left + bearRect.width / 2;
+    const bearCenterY = bearRect.top + bearRect.height / 2;
+
+    const angle = Math.atan2(e.clientY - bearCenterY, e.clientX - bearCenterX);
+    const distance = Math.min(2, Math.hypot(e.clientX - bearCenterX, e.clientY - bearCenterY) / 500);
+
+    const moveX = Math.cos(angle) * distance;
+    const moveY = Math.sin(angle) * distance;
+
+    pupils.forEach(pupil => {
+      pupil.style.transform = `translate(${moveX}px, ${moveY}px)`;
+    });
   }
 
   celebrate() {
