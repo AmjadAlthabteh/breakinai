@@ -24,6 +24,15 @@ app.get('/api/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Global process-level error handling and graceful shutdown hooks
+process.on('unhandledRejection', (reason: unknown) => {
+  logger.error(`Unhandled Rejection: ${reason instanceof Error ? reason.message : String(reason)}`);
+});
+
+process.on('uncaughtException', (err: Error) => {
+  logger.error(`Uncaught Exception: ${err.message}`);
+});
+
 app.use('/api/resume', resumeRouter);
 app.use('/api/jobs', jobsRouter);
 
