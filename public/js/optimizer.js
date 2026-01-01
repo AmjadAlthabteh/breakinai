@@ -301,6 +301,20 @@ function copyResume() {
   });
 }
 
+function downloadAsText() {
+  const resumeText = document.getElementById('optimizedResume').textContent;
+  const blob = new Blob([resumeText], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'optimized-resume.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast.success('Resume downloaded successfully!');
+}
+
 function clearForm() {
   document.getElementById('resumeInput').value = '';
   document.getElementById('jobDescriptionInput').value = '';
