@@ -7,11 +7,36 @@
     "build": "tsc",
     "dev": "ts-node src/server.ts",
     "start": "node dist/server.js",
-    "watch": "tsc -w"
+    "watch": "tsc -w",
+    "clean": "rm -rf dist",
+    "rebuild": "npm run clean && npm run build",
+    "type-check": "tsc --noEmit",
+    "example": "ts-node src/example.ts"
   },
-  "keywords": ["career", "resume", "ai", "jobs"],
-  "author": "",
+  "keywords": [
+    "career",
+    "resume",
+    "ai",
+    "jobs",
+    "ats",
+    "job-search",
+    "career-development",
+    "resume-optimization"
+  ],
+  "author": "BreakIn.ai Contributors",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/BreakIn.ai.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/BreakIn.ai/issues"
+  },
+  "homepage": "https://github.com/yourusername/BreakIn.ai#readme",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
   "dependencies": {
     "express": "^4.18.2",
     "cors": "^2.8.5",

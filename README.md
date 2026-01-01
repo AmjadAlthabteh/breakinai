@@ -2,29 +2,78 @@
 
 Bright, human-friendly jobs board and career workspace aimed at internships, startups, and early careers. Includes AI-powered resume optimization with ATS analysis, job description matching, and tailored resume generation.
 
+## Features
+
+- AI-powered resume optimization and ATS analysis
+- Job description matching and skills gap analysis
+- Beautiful, responsive UI with modern design
+- Resume tailoring for specific job roles
+- Job aggregation from multiple sources (LinkedIn, Indeed, Glassdoor)
+- Real-time job search and filtering
+- Application tracking and management
+- Professional tone normalization
+- Match scoring algorithm
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- Node.js (v16 or higher)
+- npm or yarn
+- Git
+
 ## Getting Started
 
-### Backend Setup
+### 1. Clone the Repository
+
 ```bash
-# Install dependencies
-npm install
-
-# Build TypeScript
-npm run build
-
-# Start the server
-npm start
-# Server will run on http://localhost:3001
+git clone https://github.com/yourusername/BreakIn.ai.git
+cd BreakIn.ai
 ```
 
-### Development
-```bash
-# Run in development mode with ts-node
-npm run dev
+### 2. Install Dependencies
 
-# Build and watch for changes
+```bash
+npm install
+```
+
+### 3. Environment Configuration
+
+Copy the example environment file and configure it:
+
+```bash
+cp .env.example .env
+```
+
+Edit the `.env` file with your configuration:
+- Set `PORT` (default: 3001)
+- Add API keys if you want to use external job aggregation
+- Configure LLM providers if you want AI-powered features
+
+### 4. Build the Project
+
+```bash
+npm run build
+```
+
+### 5. Start the Server
+
+For production:
+```bash
+npm start
+```
+
+For development with auto-reload:
+```bash
+npm run dev
+```
+
+For development with watch mode:
+```bash
 npm run watch
 ```
+
+The server will start at `http://localhost:3001`
 
 The backend API will be available at `http://localhost:3001/api` with the following endpoints:
 - `GET /api/health` - Health check
@@ -103,9 +152,58 @@ The frontend follows a clean, modular architecture:
 - **Modular Routes**: Separated resume and jobs endpoints
 - **AI Pipeline**: Orchestrated resume optimization with multiple specialized modules
 
+## Troubleshooting
+
+### Common Issues
+
+**Port already in use:**
+```bash
+# Change the PORT in your .env file
+PORT=3002
+```
+
+**Build errors:**
+```bash
+# Clean install dependencies
+rm -rf node_modules package-lock.json
+npm install
+npm run build
+```
+
+**TypeScript errors:**
+```bash
+# Ensure you have the correct TypeScript version
+npm install typescript@latest --save-dev
+```
+
+## Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+For issues and questions:
+- Open an issue on GitHub
+- Check existing issues for solutions
+
+## Roadmap
+
+- [ ] Integration with real LLM providers
+- [ ] Advanced resume templates
+- [ ] Interview preparation tools
+- [ ] Salary negotiation assistant
+- [ ] LinkedIn profile optimization
+- [ ] Cover letter generator
+
 ## Notes
+
 - Modular JavaScript architecture with clean separation of concerns
 - Uses Inter via Google Fonts (swap in `public/styles.css` if desired)
 - TypeScript backend with Express for robust API
 - Auto-detects environment (localhost vs production) for API URLs
 - LocalStorage for client-side state persistence
+- Rate limiting and security best practices included
