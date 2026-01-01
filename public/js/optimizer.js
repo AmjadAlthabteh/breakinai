@@ -32,14 +32,21 @@ async function optimizeResume() {
   showLoading();
 
   try {
-    // Parse resume into UserProfile format
-    const profile = parseResumeText(resumeText);
-
-    // Parse job description
+    // Step 1: Parse job description
+    await simulateProgress('step1', 'Analyzing job description...');
     const jd = parseJobDescription(jobDescription);
 
-    // Call backend API
+    // Step 2: Extract requirements
+    await simulateProgress('step2', 'Extracting key requirements...');
+    const profile = parseResumeText(resumeText);
+
+    // Step 3: Optimize resume
+    await simulateProgress('step3', 'Optimizing resume content...');
     const result = await api.optimizeResume(profile, jd, style);
+
+    // Step 4: Calculate match score
+    await simulateProgress('step4', 'Calculating match score...');
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     // Display results
     displayResults(result);
@@ -301,10 +308,40 @@ function clearForm() {
   hideError();
 }
 
+async function simulateProgress(stepId, message) {
+  // Update message
+  document.getElementById('loadingMessage').textContent = message;
+
+  // Mark previous steps as completed
+  const stepNumber = parseInt(stepId.replace('step', ''));
+  for (let i = 1; i < stepNumber; i++) {
+    const prevStep = document.getElementById('step' + i);
+    prevStep.classList.remove('active');
+    prevStep.classList.add('completed');
+    // Hide number, show checkmark
+    prevStep.querySelector('.step-icon').textContent = '';
+  }
+
+  // Mark current step as active
+  const currentStep = document.getElementById(stepId);
+  currentStep.classList.add('active');
+  currentStep.classList.remove('completed');
+
+  // Simulate processing time
+  await new Promise(resolve => setTimeout(resolve, 600));
+}
+
 function showLoading() {
   document.getElementById('loadingState').style.display = 'block';
   document.getElementById('errorState').style.display = 'none';
   document.getElementById('optimizeBtn').disabled = true;
+
+  // Reset all steps
+  for (let i = 1; i <= 4; i++) {
+    const step = document.getElementById('step' + i);
+    step.classList.remove('active', 'completed');
+    step.querySelector('.step-icon').textContent = i;
+  }
 }
 
 function hideLoading() {

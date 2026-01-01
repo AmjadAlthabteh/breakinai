@@ -108,7 +108,25 @@
         <!-- Loading State -->
         <div id="loadingState" class="loading-container" style="display: none;">
           <div class="spinner"></div>
-          <p>Analyzing and optimizing your resume...</p>
+          <p id="loadingMessage">Analyzing and optimizing your resume...</p>
+          <div class="progress-steps">
+            <div class="progress-step" id="step1">
+              <div class="step-icon">1</div>
+              <span>Analyzing job description</span>
+            </div>
+            <div class="progress-step" id="step2">
+              <div class="step-icon">2</div>
+              <span>Extracting key requirements</span>
+            </div>
+            <div class="progress-step" id="step3">
+              <div class="step-icon">3</div>
+              <span>Optimizing resume content</span>
+            </div>
+            <div class="progress-step" id="step4">
+              <div class="step-icon">4</div>
+              <span>Calculating match score</span>
+            </div>
+          </div>
         </div>
 
         <!-- Error State -->
@@ -266,6 +284,88 @@
 
     @keyframes spin {
       to { transform: rotate(360deg); }
+    }
+
+    #loadingMessage {
+      font-size: 16px;
+      color: #1E293B;
+      margin-bottom: 30px;
+      font-weight: 500;
+    }
+
+    .progress-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .progress-step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: #F8FAFC;
+      border-radius: 8px;
+      opacity: 0.4;
+      transition: all 0.3s ease;
+    }
+
+    .progress-step.active {
+      opacity: 1;
+      background: #EFF6FF;
+      border-left: 3px solid #3B82F6;
+    }
+
+    .progress-step.completed {
+      opacity: 0.7;
+      background: #F0FDF4;
+      border-left: 3px solid #10B981;
+    }
+
+    .step-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #E2E8F0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+      color: #64748B;
+      transition: all 0.3s ease;
+    }
+
+    .progress-step.active .step-icon {
+      background: #3B82F6;
+      color: white;
+      transform: scale(1.1);
+    }
+
+    .progress-step.completed .step-icon {
+      background: #10B981;
+      color: white;
+    }
+
+    .progress-step.completed .step-icon::before {
+      content: "✓";
+    }
+
+    .progress-step.completed .step-icon {
+      font-size: 16px;
+    }
+
+    .progress-step span {
+      font-size: 14px;
+      color: #64748B;
+      transition: color 0.3s ease;
+    }
+
+    .progress-step.active span {
+      color: #1E293B;
+      font-weight: 500;
     }
 
     .error-container {
