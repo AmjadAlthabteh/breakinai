@@ -7,12 +7,24 @@ async function optimizeResume() {
 
   // Validation
   if (!resumeText) {
-    showError('Please enter your resume');
+    toast.error('Please enter your resume');
+    document.getElementById('resumeInput').focus();
+    return;
+  }
+
+  if (resumeText.length < 100) {
+    toast.warning('Resume text seems too short. Please provide more details for better optimization.');
     return;
   }
 
   if (!jobDescription) {
-    showError('Please enter the job description');
+    toast.error('Please enter the job description');
+    document.getElementById('jobDescriptionInput').focus();
+    return;
+  }
+
+  if (jobDescription.length < 50) {
+    toast.warning('Job description seems too short. Please provide more details for better matching.');
     return;
   }
 
@@ -34,8 +46,20 @@ async function optimizeResume() {
 
   } catch (error) {
     console.error('Optimization error:', error);
-    showError('Failed to optimize resume: ' + error.message);
     hideLoading();
+
+    // User-friendly error messages
+    if (error.message.includes('network') || error.message.includes('fetch')) {
+      toast.error('Network error. Please check your connection and try again.');
+    } else if (error.message.includes('timeout')) {
+      toast.error('Request timeout. Please try again.');
+    } else if (error.message.includes('400')) {
+      toast.error('Invalid input. Please check your resume and job description.');
+    } else if (error.message.includes('500')) {
+      toast.error('Server error. Please try again in a few moments.');
+    } else {
+      toast.error('Failed to optimize resume. Please try again or contact support.');
+    }
   }
 }
 
@@ -245,10 +269,10 @@ function showInputForm() {
 function copyResume() {
   const resumeText = document.getElementById('optimizedResume').textContent;
   navigator.clipboard.writeText(resumeText).then(() => {
-    alert('Resume copied to clipboard!');
+    toast.success('Resume copied to clipboard!');
   }).catch(err => {
     console.error('Failed to copy:', err);
-    alert('Failed to copy resume. Please select and copy manually.');
+    toast.error('Failed to copy resume. Please select and copy manually.');
   });
 }
 
