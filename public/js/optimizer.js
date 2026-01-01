@@ -64,58 +64,76 @@ async function optimizeResume() {
 }
 
 function parseResumeText(text) {
-  // Simple parser to extract resume information
-  const lines = text.split('\n').filter(line => line.trim());
+  // Enhanced parser to extract resume information
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
 
-  // Extract basic info (this is a simple implementation)
+  // Extract contact information
   const name = lines[0] || 'Your Name';
   const emailMatch = text.match(/[\w.-]+@[\w.-]+\.\w+/);
   const phoneMatch = text.match(/\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/);
+  const linkedinMatch = text.match(/linkedin\.com\/in\/[\w-]+/i);
+  const githubMatch = text.match(/github\.com\/[\w-]+/i);
+
+  // Extract summary/objective
+  let summary = '';
+  const summaryMatch = text.match(/(?:SUMMARY|OBJECTIVE|PROFILE|ABOUT)\s*:?\s*\n?([\s\S]*?)(?=\n(?:EXPERIENCE|EDUCATION|SKILLS|PROJECTS|$))/i);
+  if (summaryMatch) {
+    summary = summaryMatch[1].trim().split('\n').join(' ').slice(0, 300);
+  } else {
+    summary = lines.slice(1, 4).filter(l => !l.match(/[@()]|linkedin|github/i)).join(' ').slice(0, 300);
+  }
 
   // Extract experience section
   const experiences = [];
-  let inExperience = false;
-  let currentExp = null;
+  const expMatch = text.match(/(?:EXPERIENCE|WORK EXPERIENCE|EMPLOYMENT)\s*:?\s*\n?([\s\S]*?)(?=\n(?:EDUCATION|SKILLS|PROJECTS|CERTIFICATIONS|$))/i);
 
-  for (let line of lines) {
-    if (line.match(/EXPERIENCE|WORK EXPERIENCE/i)) {
-      inExperience = true;
-      continue;
-    }
-    if (line.match(/EDUCATION|SKILLS|PROJECTS/i)) {
-      inExperience = false;
-    }
-    if (inExperience && line.trim()) {
-      if (line.startsWith('-') || line.startsWith('•')) {
+  if (expMatch) {
+    const expText = expMatch[1];
+    const expLines = expText.split('\n').map(l => l.trim()).filter(l => l);
+    let currentExp = null;
+
+    for (let line of expLines) {
+      if (line.match(/^[-•●*]\s+/)) {
         if (currentExp) {
           if (!currentExp.bullets) currentExp.bullets = [];
-          currentExp.bullets.push(line.replace(/^[-•]\s*/, ''));
+          currentExp.bullets.push(line.replace(/^[-•●*]\s+/, ''));
         }
-      } else {
+      } else if (line.match(/\bat\b|\b(19|20)\d{2}\b/i)) {
         if (currentExp) experiences.push(currentExp);
+        const parts = line.split(/\s+at\s+/i);
         currentExp = {
-          company: line.split('at')[1]?.trim() || line,
-          role: line.split('at')[0]?.trim() || line,
+          role: parts[0]?.trim() || line,
+          company: parts[1]?.split(/[,|\-]/)[0]?.trim() || 'Company',
           bullets: []
         };
       }
     }
+    if (currentExp) experiences.push(currentExp);
   }
-  if (currentExp) experiences.push(currentExp);
 
   // Extract skills
-  const skillsMatch = text.match(/SKILLS?:?\s*([^\n]+)/i);
-  const skills = skillsMatch
-    ? skillsMatch[1].split(/[,;]/).map(s => s.trim()).filter(s => s)
-    : ['JavaScript', 'Python', 'React'];
+  const skills = new Set();
+  const skillsMatch = text.match(/(?:SKILLS?|TECHNICAL SKILLS|TECHNOLOGIES)\s*:?\s*\n?([\s\S]*?)(?=\n(?:EXPERIENCE|EDUCATION|PROJECTS|$))/i);
+  if (skillsMatch) {
+    skillsMatch[1].split(/[,;|\n•●]/).forEach(s => {
+      const skill = s.trim();
+      if (skill && skill.length < 50) skills.add(skill);
+    });
+  }
+
+  // Detect common tech skills
+  const techSkills = ['JavaScript', 'TypeScript', 'Python', 'Java', 'React', 'Node.js', 'Angular', 'Vue', 'AWS', 'Docker', 'SQL', 'MongoDB'];
+  techSkills.forEach(skill => {
+    if (new RegExp('\\b' + skill + '\\b', 'i').test(text)) skills.add(skill);
+  });
 
   return {
     name,
     email: emailMatch ? emailMatch[0] : 'your.email@example.com',
     phone: phoneMatch ? phoneMatch[0] : '(555) 123-4567',
-    experiences,
-    skills,
-    summary: lines.slice(1, 4).join(' ')
+    experiences: experiences.length > 0 ? experiences : [{ role: 'Professional', company: 'Company', bullets: [] }],
+    skills: Array.from(skills).slice(0, 20),
+    summary: summary || 'Professional seeking new opportunities'
   };
 }
 
