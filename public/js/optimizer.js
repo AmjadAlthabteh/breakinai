@@ -272,10 +272,66 @@ function formatOptimizedResume(resume) {
 
   if (resume.skills && resume.skills.length > 0) {
     text += `\nSKILLS\n`;
-    text += resume.skills.join(', ');
+    const categorized = categorizeSkills(resume.skills);
+
+    if (categorized.languages.length > 0) {
+      text += `\nLanguages: ${categorized.languages.join(', ')}`;
+    }
+    if (categorized.frameworks.length > 0) {
+      text += `\nFrameworks: ${categorized.frameworks.join(', ')}`;
+    }
+    if (categorized.tools.length > 0) {
+      text += `\nTools: ${categorized.tools.join(', ')}`;
+    }
+    if (categorized.technical.length > 0) {
+      text += `\nTechnical: ${categorized.technical.join(', ')}`;
+    }
+    if (categorized.soft.length > 0) {
+      text += `\nSoft Skills: ${categorized.soft.join(', ')}`;
+    }
+    if (categorized.other.length > 0) {
+      text += `\nOther: ${categorized.other.join(', ')}`;
+    }
   }
 
   return text;
+}
+
+function categorizeSkills(skills) {
+  const categories = {
+    languages: [],
+    frameworks: [],
+    tools: [],
+    technical: [],
+    soft: [],
+    other: []
+  };
+
+  const languageKeywords = ['javascript', 'typescript', 'python', 'java', 'c++', 'c#', 'go', 'rust', 'ruby', 'php', 'swift', 'kotlin', 'sql', 'html', 'css'];
+  const frameworkKeywords = ['react', 'angular', 'vue', 'next', 'express', 'django', 'flask', 'spring', 'rails', 'laravel', 'tailwind', 'bootstrap'];
+  const toolKeywords = ['git', 'docker', 'kubernetes', 'jenkins', 'aws', 'azure', 'gcp', 'terraform', 'jira', 'figma', 'postman', 'webpack', 'vite'];
+  const technicalKeywords = ['api', 'database', 'microservices', 'cloud', 'devops', 'ci/cd', 'testing', 'security', 'algorithm'];
+  const softKeywords = ['leadership', 'communication', 'teamwork', 'problem solving', 'agile', 'scrum', 'mentoring', 'collaboration'];
+
+  skills.forEach(skill => {
+    const skillLower = skill.toLowerCase();
+
+    if (languageKeywords.some(kw => skillLower.includes(kw))) {
+      categories.languages.push(skill);
+    } else if (frameworkKeywords.some(kw => skillLower.includes(kw))) {
+      categories.frameworks.push(skill);
+    } else if (toolKeywords.some(kw => skillLower.includes(kw))) {
+      categories.tools.push(skill);
+    } else if (technicalKeywords.some(kw => skillLower.includes(kw))) {
+      categories.technical.push(skill);
+    } else if (softKeywords.some(kw => skillLower.includes(kw))) {
+      categories.soft.push(skill);
+    } else {
+      categories.other.push(skill);
+    }
+  });
+
+  return categories;
 }
 
 function getScoreDescription(score) {

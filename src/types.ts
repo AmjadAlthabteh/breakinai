@@ -1,8 +1,10 @@
+export type SkillCategory = "technical" | "soft" | "tools" | "languages" | "frameworks" | "other";
+
 export type Skill = {
   name: string;
   level?: "beginner" | "intermediate" | "advanced" | "expert";
   years?: number;
-  category?: string;
+  category?: SkillCategory;
 };
 
 export type Bullet = {
