@@ -253,13 +253,22 @@ function formatOptimizedResume(resume) {
     return 'Your optimized resume will appear here...';
   }
 
+  // Get section preferences from checkboxes
+  const includeSummary = document.getElementById('includeSummary')?.checked ?? true;
+  const includeSkills = document.getElementById('includeSkills')?.checked ?? true;
+  const includeProjects = document.getElementById('includeProjects')?.checked ?? true;
+  const includeEducation = document.getElementById('includeEducation')?.checked ?? true;
+  const includeCertifications = document.getElementById('includeCertifications')?.checked ?? true;
+
   let text = `${resume.name || 'Your Name'}\n`;
   text += `${resume.email || 'email@example.com'} | ${resume.phone || '(555) 123-4567'}\n\n`;
 
-  if (resume.summary) {
+  // Professional Summary (optional)
+  if (includeSummary && resume.summary) {
     text += `PROFESSIONAL SUMMARY\n${resume.summary}\n\n`;
   }
 
+  // Work Experience (always included)
   text += `EXPERIENCE\n`;
   for (let exp of resume.experiences) {
     text += `\n${exp.role} at ${exp.company}\n`;
@@ -270,7 +279,8 @@ function formatOptimizedResume(resume) {
     }
   }
 
-  if (resume.skills && resume.skills.length > 0) {
+  // Skills (optional)
+  if (includeSkills && resume.skills && resume.skills.length > 0) {
     text += `\nSKILLS\n`;
     const categorized = categorizeSkills(resume.skills);
 
@@ -291,6 +301,32 @@ function formatOptimizedResume(resume) {
     }
     if (categorized.other.length > 0) {
       text += `\nOther: ${categorized.other.join(', ')}`;
+    }
+  }
+
+  // Projects (optional)
+  if (includeProjects && resume.projects && resume.projects.length > 0) {
+    text += `\n\nPROJECTS\n`;
+    for (let project of resume.projects) {
+      text += `\n${project.name}\n`;
+      text += `${project.description || ''}\n`;
+    }
+  }
+
+  // Education (optional)
+  if (includeEducation && resume.education && resume.education.length > 0) {
+    text += `\n\nEDUCATION\n`;
+    for (let edu of resume.education) {
+      text += `\n${edu.degree} - ${edu.institution}\n`;
+      if (edu.year) text += `${edu.year}\n`;
+    }
+  }
+
+  // Certifications (optional)
+  if (includeCertifications && resume.certifications && resume.certifications.length > 0) {
+    text += `\n\nCERTIFICATIONS\n`;
+    for (let cert of resume.certifications) {
+      text += `• ${cert}\n`;
     }
   }
 
