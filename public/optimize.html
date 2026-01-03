@@ -191,8 +191,18 @@
             <h3>Optimized Resume</h3>
             <div id="optimizedResume" class="resume-output"></div>
             <div class="export-buttons">
-              <button class="action-btn is-primary" onclick="copyResume()">Copy to Clipboard</button>
-              <button class="action-btn is-ghost" onclick="downloadAsText()">Download as TXT</button>
+              <button class="action-btn is-primary" onclick="copyResume()">📋 Copy to Clipboard</button>
+              <div class="export-dropdown">
+                <button class="action-btn is-ghost dropdown-toggle" onclick="toggleExportMenu()">
+                  💾 Export Resume ▼
+                </button>
+                <div id="exportMenu" class="export-menu" style="display: none;">
+                  <button onclick="exportResume('txt')">📄 Plain Text (.txt)</button>
+                  <button onclick="exportResume('md')">📝 Markdown (.md)</button>
+                  <button onclick="exportResume('html')">🌐 HTML (.html)</button>
+                  <button onclick="exportResume('json')">🔧 JSON (.json)</button>
+                </div>
+              </div>
             </div>
           </div>
 

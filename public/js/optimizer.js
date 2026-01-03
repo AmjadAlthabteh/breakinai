@@ -185,6 +185,18 @@ function displayResults(result) {
   const resumeText = formatOptimizedResume(resume);
   document.getElementById('optimizedResume').textContent = resumeText;
 
+  // Store resume data for export
+  currentResumeData = {
+    resume: resumeText,
+    score: score,
+    gaps: gaps,
+    analysis: analysis,
+    metadata: {
+      generatedAt: new Date().toISOString(),
+      style: result.tailored?.style || 'concise'
+    }
+  };
+
   // Display skill gaps with visual chart
   const gaps = result.gaps || { missing: [], suggested: [] };
   const analysis = result.analysis || {};
@@ -465,18 +477,146 @@ function copyResume() {
   });
 }
 
-function downloadAsText() {
+// Store resume data globally for export
+let currentResumeData = null;
+
+function toggleExportMenu() {
+  const menu = document.getElementById('exportMenu');
+  const isVisible = menu.style.display === 'block';
+  menu.style.display = isVisible ? 'none' : 'block';
+}
+
+// Close menu when clicking outside
+document.addEventListener('click', (e) => {
+  const dropdown = document.querySelector('.export-dropdown');
+  const menu = document.getElementById('exportMenu');
+  if (menu && dropdown && !dropdown.contains(e.target)) {
+    menu.style.display = 'none';
+  }
+});
+
+function exportResume(format) {
   const resumeText = document.getElementById('optimizedResume').textContent;
-  const blob = new Blob([resumeText], { type: 'text/plain' });
+  let content, mimeType, filename;
+
+  switch (format) {
+    case 'txt':
+      content = resumeText;
+      mimeType = 'text/plain';
+      filename = 'resume.txt';
+      break;
+
+    case 'md':
+      content = convertToMarkdown(resumeText);
+      mimeType = 'text/markdown';
+      filename = 'resume.md';
+      break;
+
+    case 'html':
+      content = convertToHTML(resumeText);
+      mimeType = 'text/html';
+      filename = 'resume.html';
+      break;
+
+    case 'json':
+      content = JSON.stringify(currentResumeData || { resume: resumeText }, null, 2);
+      mimeType = 'application/json';
+      filename = 'resume.json';
+      break;
+
+    default:
+      toast.error('Unsupported export format');
+      return;
+  }
+
+  downloadFile(content, mimeType, filename);
+  document.getElementById('exportMenu').style.display = 'none';
+  toast.success(`Resume exported as ${format.toUpperCase()}!`);
+}
+
+function convertToMarkdown(text) {
+  // Convert plain text resume to Markdown format
+  let md = text
+    .replace(/^([A-Z][A-Z\s]+)$/gm, '# $1') // Headers
+    .replace(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*):$/gm, '## $1') // Section headers
+    .replace(/^([A-Z][a-z].*?(?:at|@|-)\s+.*)$/gm, '### $1') // Job titles
+    .replace(/^•\s+/gm, '- '); // Bullets
+
+  return `# Resume\n\n${md}\n\n---\n*Generated with BreakIn.ai Resume Optimizer*`;
+}
+
+function convertToHTML(text) {
+  const lines = text.split('\n');
+  let html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume</title>
+  <style>
+    body { font-family: 'Arial', sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.6; color: #333; }
+    h1 { color: #0EA5E9; border-bottom: 3px solid #0EA5E9; padding-bottom: 10px; }
+    h2 { color: #1E293B; margin-top: 30px; border-bottom: 2px solid #E2E8F0; padding-bottom: 5px; }
+    h3 { color: #475569; margin-top: 20px; }
+    ul { list-style-type: none; padding-left: 0; }
+    li { padding: 5px 0; padding-left: 20px; position: relative; }
+    li:before { content: "▸"; position: absolute; left: 0; color: #0EA5E9; font-weight: bold; }
+    .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #E2E8F0; font-size: 0.9em; color: #64748B; text-align: center; }
+  </style>
+</head>
+<body>`;
+
+  let inList = false;
+  lines.forEach(line => {
+    line = line.trim();
+    if (!line) {
+      if (inList) {
+        html += '</ul>\n';
+        inList = false;
+      }
+      html += '<br>\n';
+      return;
+    }
+
+    if (/^[A-Z][A-Z\s]+$/.test(line)) {
+      if (inList) { html += '</ul>\n'; inList = false; }
+      html += `<h1>${line}</h1>\n`;
+    } else if (line.match(/^(EXPERIENCE|SKILLS|EDUCATION|PROJECTS|CERTIFICATIONS)/)) {
+      if (inList) { html += '</ul>\n'; inList = false; }
+      html += `<h2>${line}</h2>\n`;
+    } else if (line.includes(' at ') || line.includes(' - ')) {
+      if (inList) { html += '</ul>\n'; inList = false; }
+      html += `<h3>${line}</h3>\n`;
+    } else if (line.startsWith('•') || line.startsWith('-')) {
+      if (!inList) {
+        html += '<ul>\n';
+        inList = true;
+      }
+      html += `<li>${line.replace(/^[•-]\s*/, '')}</li>\n`;
+    } else {
+      if (inList) { html += '</ul>\n'; inList = false; }
+      html += `<p>${line}</p>\n`;
+    }
+  });
+
+  if (inList) html += '</ul>\n';
+  html += `<div class="footer">Generated with BreakIn.ai Resume Optimizer</div>
+</body>
+</html>`;
+
+  return html;
+}
+
+function downloadFile(content, mimeType, filename) {
+  const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'optimized-resume.txt';
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  toast.success('Resume downloaded successfully!');
 }
 
 function clearForm() {
