@@ -3,12 +3,23 @@ import { orchestrate } from '../orchestrator';
 import { UserProfile, JobDescription } from '../types';
 import { NoopLLM } from '../llm';
 import { validateRequest, resumeOptimizationSchema, apiLimiter } from '../middleware/validation';
+import { CacheManager, createCacheKey } from '../utils/cacheManager';
 
 export const resumeRouter = Router();
 
-// Simple in-memory cache for optimization results
-const optimizationCache = new Map<string, { result: any; timestamp: number }>();
-const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+// Smart cache manager with TTL and LRU eviction
+const optimizationCache = new CacheManager<any>({
+  defaultTTL: 60 * 60 * 1000, // 1 hour
+  maxSize: 200 // Store up to 200 optimization results
+});
+
+// Periodic cache cleanup (every 10 minutes)
+setInterval(() => {
+  const cleaned = optimizationCache.cleanupExpired();
+  if (cleaned > 0) {
+    console.log(`[Cache] Cleaned up ${cleaned} expired entries`);
+  }
+}, 10 * 60 * 1000);
 
 // Apply rate limiting to all resume routes
 resumeRouter.use(apiLimiter.middleware());
@@ -31,22 +42,21 @@ resumeRouter.post('/optimize', async (req: Request, res: Response) => {
       return;
     }
 
-    // Generate cache key
-    const cacheKey = JSON.stringify({ profile, jobDescription, style: style || 'concise' });
+    // Generate cache key using consistent hashing
+    const cacheKey = createCacheKey({ profile, jobDescription, style: style || 'concise' });
 
-    // Check cache
-    if (useCache && optimizationCache.has(cacheKey)) {
-      const cached = optimizationCache.get(cacheKey)!;
-      if (Date.now() - cached.timestamp < CACHE_DURATION) {
+    // Check cache with smart retrieval
+    if (useCache) {
+      const cachedResult = optimizationCache.get(cacheKey);
+      if (cachedResult) {
         res.json({
           success: true,
-          data: cached.result,
+          data: cachedResult,
           cached: true,
+          cacheStats: optimizationCache.getStats(),
           timestamp: new Date().toISOString()
         });
         return;
-      } else {
-        optimizationCache.delete(cacheKey);
       }
     }
 
@@ -59,19 +69,9 @@ resumeRouter.post('/optimize', async (req: Request, res: Response) => {
       llm
     });
 
-    // Cache result
+    // Cache result with smart management (auto-eviction, TTL)
     if (useCache) {
-      optimizationCache.set(cacheKey, {
-        result,
-        timestamp: Date.now()
-      });
-
-      // Clean old cache entries
-      if (optimizationCache.size > 100) {
-        const oldestKey = Array.from(optimizationCache.entries())
-          .sort((a, b) => a[1].timestamp - b[1].timestamp)[0][0];
-        optimizationCache.delete(oldestKey);
-      }
+      optimizationCache.set(cacheKey, result);
     }
 
     res.json({
@@ -165,11 +165,59 @@ resumeRouter.post('/score-match', async (req: Request, res: Response) => {
 
 // Health check endpoint for resume service
 resumeRouter.get('/health', (_req: Request, res: Response) => {
+  const cacheStats = optimizationCache.getStats();
   res.json({
     success: true,
     service: 'resume-optimizer',
     status: 'healthy',
-    cacheSize: optimizationCache.size,
+    cache: cacheStats,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Cache statistics endpoint
+resumeRouter.get('/cache/stats', (_req: Request, res: Response) => {
+  const stats = optimizationCache.getStats();
+  res.json({
+    success: true,
+    data: {
+      ...stats,
+      hitRatePercent: `${(stats.hitRate * 100).toFixed(2)}%`,
+      avgAccessPerEntry: stats.size > 0 ? (stats.hits / stats.size).toFixed(2) : '0'
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Cache invalidation endpoint (useful for debugging/admin)
+resumeRouter.post('/cache/invalidate', (req: Request, res: Response) => {
+  const { pattern } = req.body;
+
+  if (pattern) {
+    const regex = new RegExp(pattern);
+    const count = optimizationCache.invalidatePattern(regex);
+    res.json({
+      success: true,
+      message: `Invalidated ${count} cache entries matching pattern: ${pattern}`,
+      timestamp: new Date().toISOString()
+    });
+  } else {
+    optimizationCache.clear();
+    res.json({
+      success: true,
+      message: 'All cache entries cleared',
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Cache cleanup endpoint
+resumeRouter.post('/cache/cleanup', (_req: Request, res: Response) => {
+  const cleaned = optimizationCache.cleanupExpired();
+  res.json({
+    success: true,
+    message: `Cleaned up ${cleaned} expired cache entries`,
+    remaining: optimizationCache.size(),
     timestamp: new Date().toISOString()
   });
 });
