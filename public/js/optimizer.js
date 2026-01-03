@@ -185,26 +185,13 @@ function displayResults(result) {
   const resumeText = formatOptimizedResume(resume);
   document.getElementById('optimizedResume').textContent = resumeText;
 
-  // Display skill gaps
+  // Display skill gaps with visual chart
   const gaps = result.gaps || { missing: [], suggested: [] };
-  const gapsHTML = `
-    ${gaps.missing && gaps.missing.length > 0 ? `
-      <div style="margin-bottom: 16px;">
-        <strong style="color: #DC2626;">Missing Skills:</strong>
-        <ul style="margin-top: 8px; padding-left: 20px;">
-          ${gaps.missing.map(skill => `<li>${skill}</li>`).join('')}
-        </ul>
-      </div>
-    ` : ''}
-    ${gaps.suggested && gaps.suggested.length > 0 ? `
-      <div>
-        <strong style="color: #3B82F6;">Suggested Skills:</strong>
-        <ul style="margin-top: 8px; padding-left: 20px;">
-          ${gaps.suggested.map(skill => `<li>${skill}</li>`).join('')}
-        </ul>
-      </div>
-    ` : '<p style="color: #10B981;">Great! Your skills align well with the job requirements.</p>'}
-  `;
+  const analysis = result.analysis || {};
+  const requiredSkills = analysis.requiredSkills || [];
+  const userSkills = resume.skills || [];
+
+  const gapsHTML = renderSkillGapsChart(requiredSkills, userSkills, gaps);
   document.getElementById('skillGaps').innerHTML = gapsHTML;
 
   // Display recommendations
@@ -331,6 +318,91 @@ function formatOptimizedResume(resume) {
   }
 
   return text;
+}
+
+function renderSkillGapsChart(requiredSkills, userSkills, gaps) {
+  // Analyze skill coverage
+  const userSkillsLower = (Array.isArray(userSkills) ? userSkills : userSkills.map(s => s.name || s)).map(s =>
+    typeof s === 'string' ? s.toLowerCase() : ''
+  );
+
+  const skillAnalysis = requiredSkills.slice(0, 8).map(skill => {
+    const hasSkill = userSkillsLower.some(us => us.includes(skill.toLowerCase()) || skill.toLowerCase().includes(us));
+    return {
+      name: skill,
+      hasSkill,
+      level: hasSkill ? 100 : 0
+    };
+  });
+
+  // Calculate overall coverage
+  const coverage = skillAnalysis.filter(s => s.hasSkill).length;
+  const total = skillAnalysis.length;
+  const coveragePercent = total > 0 ? Math.round((coverage / total) * 100) : 100;
+
+  // Generate chart HTML
+  return `
+    <div class="skill-gap-summary">
+      <div class="coverage-indicator">
+        <span class="coverage-label">Skill Coverage</span>
+        <div class="coverage-bar">
+          <div class="coverage-fill" style="width: ${coveragePercent}%; background: ${getCoverageColor(coveragePercent)}"></div>
+        </div>
+        <span class="coverage-percent">${coveragePercent}%</span>
+      </div>
+    </div>
+
+    <div class="skills-chart">
+      ${skillAnalysis.map(skill => `
+        <div class="skill-row">
+          <div class="skill-name" title="${skill.name}">
+            <span class="skill-status ${skill.hasSkill ? 'has-skill' : 'missing-skill'}">${skill.hasSkill ? '✓' : '✗'}</span>
+            ${skill.name}
+          </div>
+          <div class="skill-bar-container">
+            <div class="skill-bar ${skill.hasSkill ? 'skill-bar--complete' : 'skill-bar--missing'}">
+              <span class="skill-bar-label">${skill.hasSkill ? 'You have this' : 'Need to add'}</span>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    ${gaps.missing && gaps.missing.length > 0 ? `
+      <div class="gap-recommendations">
+        <strong style="color: #DC2626; display: block; margin-bottom: 12px;">🎯 Skills to Add:</strong>
+        <div class="skill-pills">
+          ${gaps.missing.slice(0, 6).map(skill => `
+            <span class="skill-pill skill-pill--missing">${skill}</span>
+          `).join('')}
+        </div>
+      </div>
+    ` : ''}
+
+    ${gaps.suggested && gaps.suggested.length > 0 ? `
+      <div class="gap-recommendations">
+        <strong style="color: #3B82F6; display: block; margin-bottom: 12px;">💡 Nice to Have:</strong>
+        <div class="skill-pills">
+          ${gaps.suggested.slice(0, 6).map(skill => `
+            <span class="skill-pill skill-pill--suggested">${skill}</span>
+          `).join('')}
+        </div>
+      </div>
+    ` : ''}
+
+    ${coverage === total ? `
+      <div class="success-message">
+        <strong style="color: #10B981;">✨ Excellent!</strong> Your skills align perfectly with the job requirements.
+      </div>
+    ` : ''}
+  `;
+}
+
+function getCoverageColor(percent) {
+  if (percent >= 80) return 'linear-gradient(90deg, #22c55e 0%, #16a34a 100%)';
+  if (percent >= 60) return 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)';
+  if (percent >= 40) return 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)';
+  return 'linear-gradient(90deg, #ef4444 0%, #dc2626 100%)';
 }
 
 function categorizeSkills(skills) {
