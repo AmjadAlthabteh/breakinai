@@ -221,3 +221,40 @@ resumeRouter.post('/cache/cleanup', (_req: Request, res: Response) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// Bullet strength analyzer endpoint
+resumeRouter.post('/analyze-bullets', async (req: Request, res: Response) => {
+  try {
+    const { bullets } = req.body;
+
+    if (!bullets || !Array.isArray(bullets)) {
+      res.status(400).json({
+        success: false,
+        error: 'bullets array is required',
+        timestamp: new Date().toISOString()
+      });
+      return;
+    }
+
+    const { analyzeBullets, getOverallResumeStrength } = await import('../modules/bulletStrengthAnalyzer');
+    const analysis = analyzeBullets(bullets);
+    const overallStrength = getOverallResumeStrength(bullets);
+
+    res.json({
+      success: true,
+      data: {
+        bulletAnalysis: analysis,
+        overallStrength
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Bullet analysis error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to analyze bullets',
+      message: error instanceof Error ? error.message : 'Internal server error',
+      timestamp: new Date().toISOString()
+    });
+  }
+});

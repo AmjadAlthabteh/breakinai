@@ -206,6 +206,9 @@ function displayResults(result) {
   const gapsHTML = renderSkillGapsChart(requiredSkills, userSkills, gaps);
   document.getElementById('skillGaps').innerHTML = gapsHTML;
 
+  // Analyze bullet strength
+  analyzeBulletStrength(resume);
+
   // Display recommendations
   const recommendations = [
     'Tailor your summary to highlight relevant experience',
@@ -415,6 +418,128 @@ function getCoverageColor(percent) {
   if (percent >= 60) return 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)';
   if (percent >= 40) return 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)';
   return 'linear-gradient(90deg, #ef4444 0%, #dc2626 100%)';
+}
+
+async function analyzeBulletStrength(resume) {
+  // Extract all bullets from experiences
+  const bullets = [];
+  if (resume.experiences && Array.isArray(resume.experiences)) {
+    resume.experiences.forEach(exp => {
+      if (exp.bullets && Array.isArray(exp.bullets)) {
+        bullets.push(...exp.bullets);
+      }
+    });
+  }
+
+  if (bullets.length === 0) {
+    document.getElementById('bulletStrength').innerHTML = '<p style="color: #64748B;">No bullet points to analyze.</p>';
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/resume/analyze-bullets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bullets })
+    });
+
+    const result = await response.json();
+
+    if (result.success && result.data) {
+      const bulletStrengthHTML = renderBulletStrengthAnalysis(result.data);
+      document.getElementById('bulletStrength').innerHTML = bulletStrengthHTML;
+    } else {
+      document.getElementById('bulletStrength').innerHTML = '<p style="color: #ef4444;">Failed to analyze bullet strength.</p>';
+    }
+  } catch (error) {
+    console.error('Bullet strength analysis error:', error);
+    document.getElementById('bulletStrength').innerHTML = '<p style="color: #64748B;">Bullet strength analysis unavailable.</p>';
+  }
+}
+
+function renderBulletStrengthAnalysis(data) {
+  const { bulletAnalysis, overallStrength } = data;
+
+  const getRatingColor = (rating) => {
+    const colors = {
+      excellent: '#22c55e',
+      strong: '#3b82f6',
+      good: '#0ea5e9',
+      fair: '#f59e0b',
+      weak: '#ef4444'
+    };
+    return colors[rating] || '#64748b';
+  };
+
+  const getRatingEmoji = (rating) => {
+    const emojis = {
+      excellent: '🌟',
+      strong: '💪',
+      good: '👍',
+      fair: '⚠️',
+      weak: '❌'
+    };
+    return emojis[rating] || '●';
+  };
+
+  return `
+    <div class="strength-summary">
+      <div class="strength-score-card">
+        <div class="strength-score-big">${overallStrength.averageScore}</div>
+        <div class="strength-label">Average Strength Score</div>
+        <div class="strength-breakdown">
+          <span class="strength-stat">
+            <strong>${overallStrength.strongBullets}</strong> Strong
+          </span>
+          <span class="strength-stat">
+            <strong>${overallStrength.weakBullets}</strong> Need Work
+          </span>
+          <span class="strength-stat">
+            <strong>${overallStrength.totalBullets}</strong> Total
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bullet-analysis-list">
+      ${bulletAnalysis.map((item, index) => `
+        <div class="bullet-item">
+          <div class="bullet-header">
+            <span class="bullet-number">#${index + 1}</span>
+            <span class="bullet-rating" style="background: ${getRatingColor(item.strength.rating)}; color: white;">
+              ${getRatingEmoji(item.strength.rating)} ${item.strength.rating.toUpperCase()} ${item.strength.overall}/100
+            </span>
+          </div>
+          <div class="bullet-text">${item.original}</div>
+          <div class="bullet-indicators">
+            <span class="indicator ${item.strength.hasActionVerb ? 'active' : 'inactive'}">
+              ${item.strength.hasActionVerb ? '✓' : '✗'} Action Verb
+            </span>
+            <span class="indicator ${item.strength.hasMetrics ? 'active' : 'inactive'}">
+              ${item.strength.hasMetrics ? '✓' : '✗'} Metrics
+            </span>
+            <span class="indicator ${item.strength.hasImpact ? 'active' : 'inactive'}">
+              ${item.strength.hasImpact ? '✓' : '✗'} Impact
+            </span>
+            <span class="indicator ${item.strength.hasContext ? 'active' : 'inactive'}">
+              ${item.strength.hasContext ? '✓' : '✗'} Context
+            </span>
+            <span class="indicator ${item.strength.isOptimalLength ? 'active' : 'inactive'}">
+              ${item.strength.isOptimalLength ? '✓' : '✗'} Length (${item.strength.wordCount} words)
+            </span>
+          </div>
+          ${item.strength.suggestions.length > 0 ? `
+            <div class="bullet-suggestions">
+              <strong>💡 Suggestions:</strong>
+              <ul>
+                ${item.strength.suggestions.map(s => `<li>${s}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+        </div>
+      `).join('')}
+    </div>
+  `;
 }
 
 function categorizeSkills(skills) {
